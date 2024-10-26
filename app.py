@@ -16,6 +16,11 @@ def user():
     return "Hello {}".format(name), 200
 
 
+@app.route("/my_name")
+def name():
+    return "my name is Chijiuba Onyedikachukwu"
+
+
 
 # if __name__ == "__main__":
 #     app.run(debug=True)
