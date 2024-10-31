@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+from flask_sqlalchemy import SQLAlchemy
 import json
 
 
@@ -11,6 +12,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 jwt = JWTManager(app)
+db = SQLAlchemy(app)
 
 
 @app.route("/")
@@ -30,6 +32,7 @@ def login():
 
     access_token = create_access_token(identity=username)
     return jsonify(msg="Logged in Successfuly", token=access_token), 200
+
 
 
 # Protect a route with jwt_required, which will kick out requests
@@ -57,3 +60,4 @@ def name():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
