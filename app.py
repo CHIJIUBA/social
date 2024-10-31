@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 from flask_sqlalchemy import SQLAlchemy
 import json
-
+# from hmac import compare_digest
 
 app = Flask(__name__)
 
@@ -13,17 +13,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 jwt = JWTManager(app)
-db = SQLAlchemy(app)
-
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.Text, nullable=False, unique=True)
-    full_name = db.Column(db.Text, nullable=False)
-
-    # NOTE: In a real application make sure to properly hash and salt passwords
-    def check_password(self, password):
-        return compare_digest(password, "password")
+# db = SQLAlchemy(app)
 
 
 @app.route("/")
@@ -63,7 +53,7 @@ def user():
 
 
 @app.route("/my_name")
-@jwt_required()
+# @jwt_required()
 def name():
     return "my name is Chijiuba Onyedikachukwu", 200
 
