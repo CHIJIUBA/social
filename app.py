@@ -18,7 +18,7 @@ def user():
 
 @app.route("/my_name")
 def name():
-    return "my name is Chijiuba Onyedikachukw", 200
+    return "my name is Chijiuba Onyedikachukwu", 200
 
 
 
