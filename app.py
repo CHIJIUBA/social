@@ -14,6 +14,8 @@ jwt = JWTManager(app)
 def index():
     return "Hello world", 200
 
+
+
 # Create a route to authenticate your users and return JWTs. The
 # create_access_token() function is used to actually generate the JWT.
 @app.route("/login", methods=["POST"])
@@ -24,7 +26,8 @@ def login():
         return jsonify({"msg": "Bad username or password"}), 401
 
     access_token = create_access_token(identity=username)
-    return jsonify(access_token=access_token)
+    return jsonify({"msg": "Logged in Successfuly", "token" : access_token}), 200
+
 
 
 @app.route("/user")
