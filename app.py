@@ -7,6 +7,9 @@ app = Flask(__name__)
 
 # Setup the Flask-JWT-Extended extension
 app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 jwt = JWTManager(app)
 
 
@@ -26,7 +29,7 @@ def login():
         return jsonify({"msg": "Bad username or password"}), 401
 
     access_token = create_access_token(identity=username)
-    return jsonify({"msg": "Logged in Successfuly", "token" : access_token}), 200
+    return jsonify(msg="Logged in Successfuly", token=access_token), 200
 
 
 # Protect a route with jwt_required, which will kick out requests
@@ -36,7 +39,7 @@ def login():
 def protected():
     # Access the identity of the current user with get_jwt_identity
     current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
+    return jsonify(logged_in_as=current_user, pushed=current_user), 200
 
 
 @app.route("/user")
