@@ -11,8 +11,19 @@ app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+
 jwt = JWTManager(app)
 db = SQLAlchemy(app)
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.Text, nullable=False, unique=True)
+    full_name = db.Column(db.Text, nullable=False)
+
+    # NOTE: In a real application make sure to properly hash and salt passwords
+    def check_password(self, password):
+        return compare_digest(password, "password")
 
 
 @app.route("/")
