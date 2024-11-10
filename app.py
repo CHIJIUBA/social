@@ -2,9 +2,11 @@ from flask import Flask, request, jsonify
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 from flask_sqlalchemy import SQLAlchemy
 import json
+from flask_cors import CORS
 # from hmac import compare_digest
 
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173"])
 
 # Setup the Flask-JWT-Extended extension
 app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
@@ -43,7 +45,7 @@ def login():
 def protected():
     # Access the identity of the current user with get_jwt_identity
     current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user, pushed=current_user), 200
+    return jsonify(logged_in_as=current_user, name="Asuzu Akachukwu"), 200
 
 
 @app.route("/user")
