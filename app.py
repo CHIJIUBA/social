@@ -5,6 +5,7 @@ import json
 from dotenv import load_dotenv
 import os
 from flask_cors import CORS
+from datetime import timedelta
 # from hmac import compare_digest
 
 app = Flask(__name__)
@@ -13,19 +14,31 @@ load_dotenv()
 
 
 # Setup the Flask-JWT-Extended extension
-app.config["JWT_SECRET_KEY"] = os.getenv('SECRET_KEY')
+app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY')
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
 
 
 jwt = JWTManager(app)
-# db = SQLAlchemy(app)
+db = SQLAlchemy(app)
+
+
+# Creating out my models
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
 
 
 @app.route("/")
 def index():
     return "Hello world", 200
-
 
 
 # Create a route to authenticate your users and return JWTs. The
