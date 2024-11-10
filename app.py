@@ -2,15 +2,19 @@ from flask import Flask, request, jsonify
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 from flask_sqlalchemy import SQLAlchemy
 import json
+from dotenv import load_dotenv
+import os
 from flask_cors import CORS
 # from hmac import compare_digest
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
+load_dotenv()
+
 
 # Setup the Flask-JWT-Extended extension
-app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
+app.config["JWT_SECRET_KEY"] = os.getenv('SECRET_KEY')
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
