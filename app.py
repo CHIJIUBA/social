@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, get_jwt
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, get_jwt, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 import json
@@ -50,18 +50,18 @@ def login():
     data = request.get_json()
 
     # Extract fields
-    username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
 
     # Find user by username
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(email=email).first()
 
     # Check if user exists and if the password is correct
     if not user or not check_password_hash(user.password, password):
         return jsonify({"message": "Invalid username or password"}), 401
 
     # Create JWT access token
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=user.email)
     return jsonify(access_token=access_token), 200
 
 
@@ -94,6 +94,21 @@ def check_if_token_revoked(jwt_header, jwt_payload):
     jti = jwt_payload["jti"]
     return jti in blocklist
 
+# # Register a callback function that takes whatever object is passed in as the
+# # identity when creating JWTs and converts it to a JSON serializable format.
+# @jwt.user_identity_loader
+# def user_identity_lookup(user):
+#     return user.id
+
+
+# Register a callback function that loads a user from your database whenever
+# a protected route is accessed. This should return any python object on a
+# successful lookup, or None if the lookup failed for any reason (for example
+# if the user has been deleted from the database).
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    return User.query.filter_by(email=identity).one_or_none()
 
 @app.route('/logout', methods=['POST'])
 @jwt_required()
@@ -103,26 +118,23 @@ def logout():
     return jsonify({"message": "Successfully logged out"}), 200
 
 
-# Protect a route with jwt_required, which will kick out requests
-# without a valid JWT present.
-@app.route("/protected", methods=["GET"])
+
+
+@app.route("/user", methods=["GET"])
 @jwt_required()
-def protected():
-    # Access the identity of the current user with get_jwt_identity
-    current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user, name="Asuzu Akachukwu"), 200
-
-
-@app.route("/user")
 def user():
-    name = request.json.get("name")
-    return "Hello {}".format(name), 200
+    # We can now access our sqlalchemy User object via `current_user`.
+    return jsonify(
+        id=current_user.id,
+        email=current_user.email,
+        username=current_user.username,
+    )
 
 
-@app.route("/my_name")
-# @jwt_required()
-def name():
-    return "my name is Chijiuba Onyedikachukwu", 200
+# @app.route("/my_name")
+# # @jwt_required()
+# def name():
+#     return "my name is Chijiuba Onyedikachukwu", 200
 
 
 if __name__ == "__main__":
