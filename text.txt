@@ -1,0 +1,18 @@
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    # Extract fields
+    username = data.get('username')
+    password = data.get('password')
+
+    # Find user by username
+    user = User.query.filter_by(username=username).first()
+
+    # Check if user exists and if the password is correct
+    if not user or not check_password_hash(user.password, password):
+        return jsonify({"message": "Invalid username or password"}), 401
+
+    # Create JWT access token
+    access_token = create_access_token(identity=user.id)
+    return jsonify(access_token=access_token), 200

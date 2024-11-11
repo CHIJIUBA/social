@@ -35,7 +35,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
 
     def __repr__(self):
-        return f'<User {self.id, self.username, self.email}>'
+        return f'<User {self.id, self.username, self.email, self.password}>'
 
 
 @app.route("/")
@@ -45,15 +45,24 @@ def index():
 
 # Create a route to authenticate your users and return JWTs. The
 # create_access_token() function is used to actually generate the JWT.
-@app.route("/login", methods=["POST"])
+@app.route('/login', methods=['POST'])
 def login():
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
-    if username != "test" or password != "test":
-        return jsonify({"msg": "Bad username or password"}), 401
+    data = request.get_json()
 
-    access_token = create_access_token(identity=username)
-    return jsonify(msg="Logged in Successfuly", token=access_token), 200
+    # Extract fields
+    username = data.get('username')
+    password = data.get('password')
+
+    # Find user by username
+    user = User.query.filter_by(username=username).first()
+
+    # Check if user exists and if the password is correct
+    if not user or not check_password_hash(user.password, password):
+        return jsonify({"message": "Invalid username or password"}), 401
+
+    # Create JWT access token
+    access_token = create_access_token(identity=user.id)
+    return jsonify(access_token=access_token), 200
 
 
 # This routes creates a routes for registration of users
