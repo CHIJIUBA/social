@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, get_jwt
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 import json
 from dotenv import load_dotenv
@@ -22,6 +23,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
 
 jwt = JWTManager(app)
 db = SQLAlchemy(app)
+blocklist = set()
 
 
 # Creating out my models
@@ -33,7 +35,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
 
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f'<User {self.id, self.username, self.email}>'
 
 
 @app.route("/")
@@ -53,6 +55,43 @@ def login():
     access_token = create_access_token(identity=username)
     return jsonify(msg="Logged in Successfuly", token=access_token), 200
 
+
+# This routes creates a routes for registration of users
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+
+    # Extract fields
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    # Check if the username or email already exists
+    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+        return jsonify({'message': 'User already exists'}), 409
+
+    # Hash the password and create the new user
+    hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+    new_user = User(username=username, email=email, password=hashed_password)
+
+    # Add to the database
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'message': 'User created successfully'}), 201
+
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    jti = jwt_payload["jti"]
+    return jti in blocklist
+
+
+@app.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]  # Get the unique identifier of the JWT
+    blocklist.add(jti)      # Add the jti to the blocklist
+    return jsonify({"message": "Successfully logged out"}), 200
 
 
 # Protect a route with jwt_required, which will kick out requests
@@ -75,7 +114,6 @@ def user():
 # @jwt_required()
 def name():
     return "my name is Chijiuba Onyedikachukwu", 200
-
 
 
 if __name__ == "__main__":
