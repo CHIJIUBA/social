@@ -118,8 +118,6 @@ def logout():
     return jsonify({"message": "Successfully logged out"}), 200
 
 
-
-
 @app.route("/user", methods=["GET"])
 @jwt_required()
 def user():
@@ -131,12 +129,6 @@ def user():
     )
 
 
-# @app.route("/my_name")
-# # @jwt_required()
-# def name():
-#     return "my name is Chijiuba Onyedikachukwu", 200
-
-
-# if __name__ == "__main__":
-#     app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
 
